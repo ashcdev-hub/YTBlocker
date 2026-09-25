@@ -107,6 +107,7 @@
     const labelRef = container.querySelector('.ytListItemViewModelTitle, yt-formatted-string, .yt-core-attributed-string');
     if (labelRef) {
       const style = getComputedStyle(labelRef);
+      row.style.color = style.color;
       label.style.fontFamily = style.fontFamily;
       label.style.fontSize = style.fontSize;
       label.style.fontWeight = style.fontWeight;

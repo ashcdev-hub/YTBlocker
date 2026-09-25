@@ -19,6 +19,10 @@
   white-space: nowrap;
 }
 
+html[dark] .ytb-menu-item {
+  color: var(--yt-spec-text-primary, #f1f1f1);
+}
+
 .ytb-menu-item:hover,
 .ytb-menu-item:focus {
   background-color: var(--yt-spec-10-percent-layer, rgba(0, 0, 0, 0.1));
