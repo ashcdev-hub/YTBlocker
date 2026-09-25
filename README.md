@@ -1,15 +1,14 @@
 # YTBlocker
 
-A Chrome extension that adds **Block Channel** and **Block Video** to YouTube's
-three-dot menu, and hides blocked videos and channels everywhere on the site.
+A Chrome extension that allows the blocking of both channels individual videos on YouTube.
 
 ![YTBlocker popup](docs/popup.png)
 
 ## Install
 
 1. Open `chrome://extensions` and turn on Developer mode.
-2. Click Load unpacked and select this folder.
-3. Open YouTube and click the three-dot button on any video.
+2. Click **Load unpacked** and select this folder.
+3. Empty cache & hard reload browser & refresh YouTube.
 
 ## Usage
 
