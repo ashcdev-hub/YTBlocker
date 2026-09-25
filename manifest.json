@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "YTBlocker",
+  "version": "0.1.0",
+  "description": "Block YouTube channels and videos straight from the three-dot menu, and hide blocked content everywhere.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.youtube.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": [
+        "src/state.js",
+        "src/extract.js",
+        "src/menu.js",
+        "src/filter.js",
+        "src/content.js"
+      ],
+      "css": ["styles.css"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "YTBlocker",
+    "default_popup": "popup/popup.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

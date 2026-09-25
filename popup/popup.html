@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YTBlocker</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="head">
+    <div class="head-title">
+      <span class="dot"></span>
+      <h1>YTBlocker</h1>
+    </div>
+    <div class="head-counts" id="counts">0 channels · 0 videos</div>
+  </header>
+
+  <section class="settings" id="settings">
+    <label class="toggle">
+      <input type="checkbox" id="opt-hide" />
+      <span>Hide blocked items in feeds &amp; search</span>
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="opt-watch" />
+      <span>Show a block screen on watch pages</span>
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="opt-feedback" />
+      <span>Show a confirmation toast</span>
+    </label>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab is-active" data-tab="channels">Channels</button>
+    <button class="tab" data-tab="videos">Videos</button>
+  </nav>
+
+  <div class="search">
+    <input type="search" id="search" placeholder="Search blocklist…" autocomplete="off" />
+  </div>
+
+  <main class="list" id="list"></main>
+
+  <footer class="foot">
+    <button class="link" id="btn-export">Export</button>
+    <button class="link" id="btn-import">Import</button>
+    <button class="link danger" id="btn-clear">Clear all</button>
+    <input type="file" id="file-input" accept="application/json" hidden />
+  </footer>
+
+  <script src="../src/state.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
