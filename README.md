@@ -20,7 +20,6 @@ A Chrome extension that allows the blocking of channels and individual videos on
 
 ## Notes
 
-- Works on `www.youtube.com`.
 - Blocked items are hidden as the page renders, so they can flash briefly first.
 - YouTube changes its markup often. If the menu items stop showing, update the
   selectors at the top of `src/extract.js` and `src/menu.js`.
