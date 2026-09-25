@@ -16,33 +16,90 @@
   function clearHidden() {
     document.querySelectorAll('[data-ytb-hidden]').forEach(function (node) {
       node.removeAttribute('data-ytb-hidden');
+      node.removeAttribute('data-ytb-sig');
     });
   }
 
+  function isBlocked(context) {
+    if (!context) return false;
+    if (context.videoId && globalThis.YTBState.findBlockedVideo(context.videoId)) return true;
+    return !!globalThis.YTBState.findBlockedChannel(context.channel);
+  }
+
+  function outermost(card) {
+    let current = card;
+    while (current.parentElement) {
+      const ancestor = current.parentElement.closest(globalThis.YTBCard.CARD_SELECTOR);
+      if (!ancestor) break;
+      current = ancestor;
+    }
+    return current;
+  }
+
+  function signatureOf(context) {
+    if (!context) return null;
+    const channel = context.channel || {};
+    const key = channel.id || channel.handle || channel.name || '';
+    if (!context.videoId && !key) return null;
+    return (context.videoId || '') + '|' + key;
+  }
+
+  function evaluateCard(card, useCache) {
+    if (!card || card.localName === 'ytd-watch-metadata') return;
+    const target = globalThis.YTBCard.hideTarget(card);
+    if (!target) return;
+    if (!globalThis.YTBState.get().settings.hideBlocked) {
+      target.removeAttribute('data-ytb-hidden');
+      target.removeAttribute('data-ytb-sig');
+      return;
+    }
+    const context = globalThis.YTBCard.extract(card);
+    const signature = signatureOf(context);
+    if (useCache && signature && target.getAttribute('data-ytb-sig') === signature) return;
+    if (signature) target.setAttribute('data-ytb-sig', signature);
+    else target.removeAttribute('data-ytb-sig');
+    if (isBlocked(context)) target.setAttribute('data-ytb-hidden', '');
+    else target.removeAttribute('data-ytb-hidden');
+  }
+
+  function cardsIn(node) {
+    const targets = new Set();
+    if (!node || node.nodeType !== 1) return targets;
+    if (node.matches && node.matches(globalThis.YTBCard.CARD_SELECTOR)) targets.add(outermost(node));
+    if (node.closest) {
+      const ancestor = node.closest(globalThis.YTBCard.CARD_SELECTOR);
+      if (ancestor) targets.add(outermost(ancestor));
+    }
+    if (node.querySelectorAll) {
+      node.querySelectorAll(globalThis.YTBCard.CARD_SELECTOR).forEach(function (child) {
+        targets.add(outermost(child));
+      });
+    }
+    return targets;
+  }
+
+  function processNode(node) {
+    try {
+      cardsIn(node).forEach(function (card) {
+        evaluateCard(card, true);
+      });
+    } catch (err) {
+      console.error('[YTBlocker] filter failed', err);
+    }
+  }
+
   function runListing() {
-    const settings = globalThis.YTBState.get().settings;
-    if (!settings.hideBlocked) {
+    if (!globalThis.YTBState.get().settings.hideBlocked) {
       clearHidden();
       return;
     }
-
-    const cards = document.querySelectorAll(globalThis.YTBCard.CARD_SELECTOR);
-    for (const card of cards) {
-      if (card.localName === 'ytd-watch-metadata') continue;
-      if (globalThis.YTBCard.isNested(card)) continue;
-
-      const context = globalThis.YTBCard.extract(card);
-      let blocked = false;
-      if (context) {
-        if (context.videoId && globalThis.YTBState.findBlockedVideo(context.videoId)) blocked = true;
-        else if (globalThis.YTBState.findBlockedChannel(context.channel)) blocked = true;
-      }
-
-      const target = globalThis.YTBCard.hideTarget(card);
-      if (!target) continue;
-      if (blocked) target.setAttribute('data-ytb-hidden', '');
-      else target.removeAttribute('data-ytb-hidden');
-    }
+    const targets = new Set();
+    document.querySelectorAll(globalThis.YTBCard.CARD_SELECTOR).forEach(function (card) {
+      targets.add(outermost(card));
+    });
+    targets.forEach(function (card) {
+      evaluateCard(card, false);
+    });
   }
 
   function buildOverlay() {
@@ -178,6 +235,7 @@
 
   globalThis.YTBFilter = {
     schedule,
-    run
+    run,
+    processNode
   };
 })();
