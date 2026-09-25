@@ -1,6 +1,6 @@
 # YTBlocker
 
-A Chrome extension that allows the blocking of both channels individual videos on YouTube.
+A Chrome extension that allows the blocking of channels and individual videos on YouTube.
 
 ![YTBlocker popup](docs/popup.png)
 
