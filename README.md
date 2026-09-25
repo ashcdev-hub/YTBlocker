@@ -25,3 +25,7 @@ A Chrome extension that allows the blocking of both channels individual videos o
 - YouTube changes its markup often. If the menu items stop showing, update the
   selectors at the top of `src/extract.js` and `src/menu.js`.
 - All data stays in your browser. The extension makes no network requests.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
