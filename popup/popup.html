@@ -15,6 +15,17 @@
     <div class="head-counts" id="counts">0 channels · 0 videos</div>
   </header>
 
+  <section class="add">
+    <div class="add-row">
+      <input type="text" id="add-url" placeholder="Paste a channel or video URL…" autocomplete="off" spellcheck="false" />
+      <button id="btn-add" class="btn-add">Add</button>
+    </div>
+    <div class="add-foot">
+      <button class="link" id="btn-add-tab">Block current tab</button>
+      <span class="add-status" id="add-status" role="status"></span>
+    </div>
+  </section>
+
   <section class="settings" id="settings">
     <label class="toggle">
       <input type="checkbox" id="opt-hide" />
@@ -27,6 +38,10 @@
     <label class="toggle">
       <input type="checkbox" id="opt-feedback" />
       <span>Show a confirmation toast</span>
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="opt-channelbtn" />
+      <span>Show a block button on channel pages</span>
     </label>
   </section>
 
@@ -48,6 +63,7 @@
     <input type="file" id="file-input" accept="application/json" hidden />
   </footer>
 
+  <script src="../src/url.js"></script>
   <script src="../src/state.js"></script>
   <script src="popup.js"></script>
 </body>

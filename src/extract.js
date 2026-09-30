@@ -57,6 +57,8 @@
 
   const VIDEO_HREF_RE = /(?:[?&]v=|\/shorts\/|\/live\/|\/embed\/)([A-Za-z0-9_-]{11})/;
 
+  const CHANNEL_PATH_RE = /^\/(?:@([^/]+)|channel\/([A-Za-z0-9_-]+)|c\/([^/]+)|user\/([^/]+))/;
+
   function cleanName(text) {
     return (text || '')
       .replace(/\s+/g, ' ')
@@ -154,17 +156,68 @@
     return null;
   }
 
+  function metaChannelId() {
+    const meta = document.querySelector('meta[itemprop="channelId"]');
+    const content = meta && meta.getAttribute('content');
+    return content ? content.trim() : null;
+  }
+
+  function pageChannelName() {
+    const meta = document.querySelector('meta[property="og:title"]');
+    let name = (meta && meta.getAttribute('content')) || document.title || '';
+    name = name.replace(/\s*[-–—|]\s*YouTube\s*$/i, '');
+    name = name.replace(/\s+/g, ' ').trim();
+    return name || null;
+  }
+
+  function channelFromPage() {
+    const match = location.pathname.match(CHANNEL_PATH_RE);
+    if (!match) return null;
+
+    let id = metaChannelId();
+    let handle = null;
+    if (match[1]) {
+      handle = globalThis.YTBState.normalizeHandle('@' + match[1]);
+    } else if (match[2]) {
+      id = id || match[2];
+    } else if (match[3] || match[4]) {
+      handle = globalThis.YTBState.normalizeHandle('@' + (match[3] || match[4]));
+    }
+
+    const name = pageChannelName();
+    if (!id && !handle && !name) return null;
+    return { id: id || null, handle, name };
+  }
+
+  function pageProbe() {
+    const videoId = watchVideoId();
+    if (videoId) {
+      const metadata = document.querySelector('ytd-watch-metadata');
+      const channel = (metadata && extractChannel(metadata)) || channelFromPage();
+      return {
+        kind: 'video',
+        videoId,
+        title: metadata ? extractTitle(metadata) : null,
+        channel: channel || null
+      };
+    }
+    const channel = channelFromPage();
+    if (channel) return { kind: 'channel', videoId: null, title: null, channel };
+    return null;
+  }
+
   function extract(card) {
     if (!card) return null;
+    const isHeader = CHANNEL_HEADER_SELECTORS.indexOf(card.localName) >= 0;
     const isWatch = card.localName === 'ytd-watch-metadata';
     let videoId = isWatch ? watchVideoId() : null;
-    if (!videoId) videoId = extractVideoId(card);
+    if (!videoId && !isHeader) videoId = extractVideoId(card);
     return {
       videoId: videoId || null,
       title: extractTitle(card),
       channel: extractChannel(card),
       isWatch,
-      isHeader: CHANNEL_HEADER_SELECTORS.indexOf(card.localName) >= 0
+      isHeader
     };
   }
 
@@ -191,6 +244,8 @@
     extractChannel,
     extractVideoId,
     extractTitle,
+    channelFromPage,
+    pageProbe,
     hideTarget,
     isNested,
     watchVideoId

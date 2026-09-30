@@ -8,7 +8,8 @@
   const DEFAULT_SETTINGS = {
     hideBlocked: true,
     blockWatchPage: true,
-    showFeedback: true
+    showFeedback: true,
+    showChannelButton: true
   };
 
   const state = {

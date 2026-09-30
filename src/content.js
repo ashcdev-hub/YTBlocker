@@ -63,10 +63,18 @@
   async function boot() {
     globalThis.YTBMenu.start();
     await globalThis.YTBState.load();
+    globalThis.YTBChannelButton.start();
     globalThis.YTBState.on(function () {
       globalThis.YTBFilter.schedule();
     });
     globalThis.YTBFilter.schedule();
+  }
+
+  if (chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+      if (!message || message.type !== 'ytb:probe') return;
+      sendResponse(globalThis.YTBCard.pageProbe());
+    });
   }
 
   if (document.readyState === 'loading') {

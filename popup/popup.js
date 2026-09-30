@@ -4,10 +4,24 @@
   const listEl = document.getElementById('list');
   const countsEl = document.getElementById('counts');
   const searchEl = document.getElementById('search');
+  const addInput = document.getElementById('add-url');
+  const addStatus = document.getElementById('add-status');
   const tabs = Array.from(document.querySelectorAll('.tab'));
 
   let activeTab = 'channels';
   let query = '';
+  let statusTimer = null;
+
+  function setStatus(message, isError) {
+    addStatus.textContent = message || '';
+    addStatus.classList.toggle('is-error', !!isError);
+    clearTimeout(statusTimer);
+    if (message) {
+      statusTimer = setTimeout(function () {
+        addStatus.textContent = '';
+      }, 3000);
+    }
+  }
 
   function ellipsis(text, max) {
     if (!text) return '';
@@ -75,7 +89,7 @@
         return [c.name, c.handle, c.id].filter(Boolean).join(' ').toLowerCase().includes(needle);
       });
       if (!items.length) {
-        renderEmpty(state.channels.length ? 'No channels match your search.' : 'No blocked channels yet. Use the ⋮ menu on any video to block one.');
+        renderEmpty(state.channels.length ? 'No channels match your search.' : 'No blocked channels yet. Paste a channel URL above, or use the ⋮ menu on any video.');
         return;
       }
       items.forEach(function (entry) {
@@ -93,7 +107,7 @@
       return [v.title, v.channelName, v.videoId].filter(Boolean).join(' ').toLowerCase().includes(needle);
     });
     if (!videos.length) {
-      renderEmpty(state.videos.length ? 'No videos match your search.' : 'No blocked videos yet. Use the ⋮ menu on any video to block one.');
+      renderEmpty(state.videos.length ? 'No videos match your search.' : 'No blocked videos yet. Paste a video URL above, or use the ⋮ menu on any video.');
       return;
     }
     videos.forEach(function (entry) {
@@ -105,6 +119,71 @@
         })
       );
     });
+  }
+
+  async function addInputUrl() {
+    const value = addInput.value.trim();
+    if (!value) return;
+    const parsed = globalThis.YTBUrl.parse(value);
+    if (!parsed) {
+      setStatus('Not a YouTube channel or video URL', true);
+      return;
+    }
+    if (parsed.type === 'video') {
+      await globalThis.YTBState.addVideo({ videoId: parsed.videoId });
+      setStatus('Video added');
+    } else {
+      await globalThis.YTBState.addChannel({ id: parsed.id, handle: parsed.handle, name: parsed.name });
+      setStatus('Channel added');
+    }
+    addInput.value = '';
+  }
+
+  async function addCurrentTab() {
+    let tab = null;
+    try {
+      const tabsInWindow = await chrome.tabs.query({ active: true, currentWindow: true });
+      tab = tabsInWindow && tabsInWindow[0];
+    } catch (err) {
+      tab = null;
+    }
+    if (!tab || tab.id == null) {
+      setStatus('No active tab', true);
+      return;
+    }
+
+    let probe = null;
+    try {
+      probe = await chrome.tabs.sendMessage(tab.id, { type: 'ytb:probe' });
+    } catch (err) {
+      probe = null;
+    }
+    if (!probe || (!probe.videoId && !probe.channel)) {
+      setStatus('Open a YouTube channel or video page first', true);
+      return;
+    }
+
+    if (probe.videoId) {
+      await globalThis.YTBState.addVideo({
+        videoId: probe.videoId,
+        title: probe.title,
+        channelName: probe.channel ? probe.channel.name : null
+      });
+      setStatus('Blocked current video');
+    } else {
+      await globalThis.YTBState.addChannel(probe.channel);
+      setStatus('Blocked current channel');
+    }
+  }
+
+  function bindAdd() {
+    document.getElementById('btn-add').addEventListener('click', addInputUrl);
+    addInput.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      addInputUrl();
+    });
+    document.getElementById('btn-add-tab').addEventListener('click', addCurrentTab);
   }
 
   function bindTabs() {
@@ -123,6 +202,7 @@
     const hide = document.getElementById('opt-hide');
     const watch = document.getElementById('opt-watch');
     const feedback = document.getElementById('opt-feedback');
+    const channelBtn = document.getElementById('opt-channelbtn');
 
     hide.addEventListener('change', function () {
       globalThis.YTBState.setSettings({ hideBlocked: hide.checked });
@@ -133,6 +213,9 @@
     feedback.addEventListener('change', function () {
       globalThis.YTBState.setSettings({ showFeedback: feedback.checked });
     });
+    channelBtn.addEventListener('change', function () {
+      globalThis.YTBState.setSettings({ showChannelButton: channelBtn.checked });
+    });
   }
 
   function syncSettings() {
@@ -140,6 +223,7 @@
     document.getElementById('opt-hide').checked = settings.hideBlocked;
     document.getElementById('opt-watch').checked = settings.blockWatchPage;
     document.getElementById('opt-feedback').checked = settings.showFeedback;
+    document.getElementById('opt-channelbtn').checked = settings.showChannelButton;
   }
 
   function bindFooter() {
@@ -189,6 +273,7 @@
 
   async function init() {
     bindTabs();
+    bindAdd();
     bindSettings();
     bindFooter();
     searchEl.addEventListener('input', function () {

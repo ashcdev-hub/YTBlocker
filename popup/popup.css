@@ -58,6 +58,69 @@ h1 {
   border-bottom: 1px solid #272727;
 }
 
+.add {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #272727;
+}
+
+.add-row {
+  display: flex;
+  gap: 6px;
+}
+
+.add-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #303030;
+  border-radius: 6px;
+  background: #181818;
+  color: #f1f1f1;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.add-row input:focus {
+  border-color: #555;
+}
+
+.btn-add {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #ff0033;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-add:hover {
+  background: #d9002b;
+}
+
+.add-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  min-height: 14px;
+}
+
+.add-status {
+  font-size: 11px;
+  color: #7fce8b;
+  text-align: right;
+}
+
+.add-status.is-error {
+  color: #ff6b6b;
+}
+
 .toggle {
   display: flex;
   align-items: center;

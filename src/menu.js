@@ -231,22 +231,27 @@
     const context = card ? globalThis.YTBCard.extract(card) : null;
     if (!context) return;
 
-    const channel = context.channel;
+    let channel = context.channel;
+    if (!channel || !(channel.id || channel.handle || channel.name)) {
+      channel = globalThis.YTBCard.channelFromPage();
+    }
     const hasChannel = !!(channel && (channel.id || channel.handle || channel.name));
     const hasVideo = !!context.videoId;
 
     if (!hasChannel && !hasVideo) return;
 
+    const rowContext = Object.assign({}, context, { channel: channel || null });
+
     if (hasChannel) {
       const blocked = globalThis.YTBState.findBlockedChannel(channel);
-      const row = buildRow(blocked ? 'Unblock Channel' : 'Block Channel', 'channel', context, blocked);
+      const row = buildRow(blocked ? 'Unblock Channel' : 'Block Channel', 'channel', rowContext, blocked);
       container.appendChild(row);
       copyStyles(row, row.querySelector('.ytb-menu-item-label'), container);
     }
 
     if (hasVideo) {
       const blocked = globalThis.YTBState.findBlockedVideo(context.videoId);
-      const row = buildRow(blocked ? 'Unblock Video' : 'Block Video', 'video', context, blocked);
+      const row = buildRow(blocked ? 'Unblock Video' : 'Block Video', 'video', rowContext, blocked);
       container.appendChild(row);
       copyStyles(row, row.querySelector('.ytb-menu-item-label'), container);
     }
@@ -284,6 +289,7 @@
     scheduleInject,
     findOpenMenu,
     findItemsContainer,
-    injectMenu
+    injectMenu,
+    toast
   };
 })();
